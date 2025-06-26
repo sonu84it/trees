@@ -42,6 +42,7 @@
 <body>
 <h2>Binary Tree Visualizer</h2>
 <div id="controls">
+  <button id="preBtn">Start Preorder Traversal</button>
   <button id="startBtn">Start Inorder Traversal</button>
   <button id="postBtn">Start Postorder Traversal</button>
 </div>
@@ -123,6 +124,15 @@ async function highlightNode(id) {
   el.classList.remove('active');
 }
 
+async function preorder(node) {
+  if (!node) return;
+  await highlightNode(node.data.name);
+  const left = node.children ? node.children[0] : null;
+  const right = node.children ? node.children[1] : null;
+  await preorder(left);
+  await preorder(right);
+}
+
 async function inorder(node) {
   if (!node) return;
   const left = node.children ? node.children[0] : null;
@@ -144,6 +154,11 @@ async function postorder(node) {
 const startBtn = document.getElementById('startBtn');
 startBtn.addEventListener('click', () => {
   inorder(root);
+});
+
+const preBtn = document.getElementById('preBtn');
+preBtn.addEventListener('click', () => {
+  preorder(root);
 });
 
 const postBtn = document.getElementById('postBtn');
