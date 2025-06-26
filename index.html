@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Binary Tree Visualizer</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+ body {
+   font-family: Arial, sans-serif;
+   text-align: center;
+ }
+ #tree {
+   margin: 20px auto;
+ }
+ .node circle {
+   fill: #fff;
+   stroke: steelblue;
+   stroke-width: 2px;
+ }
+ .node text {
+   font-size: 12px;
+   pointer-events: none;
+ }
+ .link {
+   fill: none;
+   stroke: #ccc;
+   stroke-width: 2px;
+ }
+ .active {
+   fill: orange !important;
+   stroke: darkorange !important;
+ }
+ #controls {
+   margin-bottom: 20px;
+ }
+ #controls button {
+   margin: 0 5px;
+ }
+</style>
+</head>
+<body>
+<h2>Binary Tree Visualizer</h2>
+<div id="controls">
+  <button id="startBtn">Start Inorder Traversal</button>
+  <button id="postBtn">Start Postorder Traversal</button>
+</div>
+<div id="tree"></div>
+<script>
+// Build sample binary tree data
+const treeData = {
+  name: "1",
+  children: [
+    {
+      name: "2",
+      children: [
+        { name: "4" },
+        { name: "5" }
+      ]
+    },
+    {
+      name: "3",
+      children: [
+        { name: "6" },
+        { name: "7" }
+      ]
+    }
+  ]
+};
+
+const width = 600;
+const height = 400;
+const svg = d3.select('#tree').append('svg')
+  .attr('width', width)
+  .attr('height', height);
+
+const g = svg.append('g')
+  .attr('transform', 'translate(40,40)');
+
+const root = d3.hierarchy(treeData);
+const treeLayout = d3.tree().size([width - 80, height - 80]);
+
+const links = treeLayout(root).links();
+const nodes = root.descendants();
+
+// Draw links
+ g.selectAll('.link')
+  .data(links)
+  .enter()
+  .append('line')
+  .attr('class', 'link')
+  .attr('x1', d => d.source.x)
+  .attr('y1', d => d.source.y)
+  .attr('x2', d => d.target.x)
+  .attr('y2', d => d.target.y);
+
+// Draw nodes
+const node = g.selectAll('.node')
+  .data(nodes)
+  .enter()
+  .append('g')
+  .attr('class', 'node')
+  .attr('transform', d => `translate(${d.x},${d.y})`);
+
+node.append('circle')
+  .attr('id', d => `node-${d.data.name}`)
+  .attr('r', 15);
+
+node.append('text')
+  .attr('dy', 4)
+  .attr('text-anchor', 'middle')
+  .text(d => d.data.name);
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function highlightNode(id) {
+  const el = document.getElementById(`node-${id}`);
+  if (!el) return;
+  el.classList.add('active');
+  await delay(1000);
+  el.classList.remove('active');
+}
+
+async function inorder(node) {
+  if (!node) return;
+  const left = node.children ? node.children[0] : null;
+  const right = node.children ? node.children[1] : null;
+  await inorder(left);
+  await highlightNode(node.data.name);
+  await inorder(right);
+}
+
+async function postorder(node) {
+  if (!node) return;
+  const left = node.children ? node.children[0] : null;
+  const right = node.children ? node.children[1] : null;
+  await postorder(left);
+  await postorder(right);
+  await highlightNode(node.data.name);
+}
+
+const startBtn = document.getElementById('startBtn');
+startBtn.addEventListener('click', () => {
+  inorder(root);
+});
+
+const postBtn = document.getElementById('postBtn');
+postBtn.addEventListener('click', () => {
+  postorder(root);
+});
+</script>
+</body>
+</html>
